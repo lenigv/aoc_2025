@@ -10,22 +10,26 @@ sequence_df['distance'] = sequence_df['raw_data'].str[1:]
 sequence_df['distance'] = sequence_df['distance'].astype(int)
 
 current_position = 50
-upper_boundary = 100 
-position_history = [] 
+position_history = []
+zero_hits = []
 
-for index, row in sequence_df.iterrows():
-    move_char = row['direction']
-    move_dist = row['distance']
+for move_char, move_dist in zip(sequence_df['direction'], sequence_df['distance']):
+    start = current_position
 
     if move_char == 'R':
-        current_position = (current_position + move_dist) % upper_boundary
-    elif move_char == 'L':
-        current_position = (current_position - move_dist + upper_boundary) % upper_boundary
-    
+        hits = (start + move_dist) // 100
+        current_position = (start + move_dist) % 100
+    else:  # 'L'
+        hits = ((100 - start) % 100 + move_dist) // 100
+        current_position = (start - move_dist) % 100
+
+    zero_hits.append(hits)
     position_history.append(current_position)
 
 sequence_df['end_position'] = position_history
-sequence_df['end_position_is_zero'] = sequence_df['end_position'] == 0
+sequence_df['zero_hits'] = zero_hits
 
-first_dec_answer = sequence_df.end_position_is_zero.sum()
-print(first_dec_answer)
+first_dec_answer_one = (sequence_df['end_position'] == 0).sum()
+first_dec_answer_two = sequence_df['zero_hits'].sum()
+
+print(first_dec_answer_one, first_dec_answer_two)
